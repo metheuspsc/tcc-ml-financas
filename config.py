@@ -1,0 +1,2 @@
+
+TICKERS = ['OIBR3','PETR4','COGN3']
