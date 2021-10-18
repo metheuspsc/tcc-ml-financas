@@ -1,5 +1,6 @@
 import logging
 
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import RandomizedSearchCV, TimeSeriesSplit
@@ -35,12 +36,11 @@ def model_params(df):
     ]
     y_cols = df["predictions"]
 
-    # TODO:Timeseries split
-    x_train, x_test, y_train, y_test = train_test_split(
-        x_cols, y_cols, random_state=0, shuffle=False
-    )
+    # x_train, x_test, y_train, y_test = train_test_split(
+    #     x_cols, y_cols, random_state=0, shuffle=False
+    # )
 
-    return today, x_cols, y_cols, x_train, x_test, y_train, y_test
+    return today, x_cols, y_cols
 
 
 def rf_metrics(model, y_test, y_pred, x_cols):
@@ -66,21 +66,43 @@ def predict_rf(df):
         random_state=0,
     )
 
-    today, x_cols, y_cols, x_train, x_test, y_train, y_test = model_params(df)
+    today, x_cols, y_cols = model_params(df)
 
-    rand_frst_clf.fit(x_train, y_train)
+    ts_split = TimeSeriesSplit(n_splits=5)
+    folds = pd.DataFrame()
+    for fold, (train_index, test_index) in enumerate(ts_split.split(x_cols)):
+        x_train, x_test = x_cols.iloc[train_index], x_cols.iloc[test_index]
+        y_train, y_test = y_cols.iloc[train_index], y_cols.iloc[test_index]
 
-    y_pred = rand_frst_clf.predict(x_test)
+        rand_frst_clf.fit(x_train, y_train)
 
-    accuracy = accuracy_score(y_test, y_pred, normalize=True) * 100.0
+        y_pred = rand_frst_clf.predict(x_test)
 
-    logging.info(f"Assertividade (%): {accuracy}")
+        accuracy = accuracy_score(y_test, y_pred, normalize=True) * 100.0
 
-    next = rand_frst_clf.predict_proba(today)[0]
+        logging.info(f"Assertividade (%): {accuracy}")
 
-    logging.info(f"Previsão (%): Baixa :{next[0]}, Alta :{next[1]}")
+        next = rand_frst_clf.predict_proba(today)[0]
 
-    return accuracy, next[1], next[0]
+        if len(next) == 1:
+            low_chance = 1
+            high_chance = 1
+        else:
+            low_chance = next[0]
+            high_chance = next[1]
+
+        logging.info(f"Previsão[{fold}] (%): Baixa :{low_chance}, Alta :{high_chance}")
+
+        to_join = pd.DataFrame(
+            {
+                f"accuracy[{fold}]": accuracy,
+                f"low_chance[{fold}]": low_chance,
+                f"high_chance[{fold}]": high_chance,
+            },
+            index=[0]
+        )
+        folds = pd.concat([folds, to_join], axis=1)
+    return folds
 
 
 def get_random_grid():
@@ -97,8 +119,7 @@ def get_random_grid():
 
     bootstrap = [True, False]
 
-    # Create the random grid
-    random_grid = {
+    return {
         "n_estimators": n_estimators,
         "max_features": max_features,
         "max_depth": max_depth,
@@ -106,8 +127,6 @@ def get_random_grid():
         "min_samples_leaf": min_samples_leaf,
         "bootstrap": bootstrap,
     }
-
-    return random_grid
 
 
 def random_rf(df):
@@ -143,5 +162,3 @@ def random_rf(df):
     logging.info(f"Assertividade (%): {accuracy}")
 
     next = rf_random.predict_proba(today)
-
-    pass

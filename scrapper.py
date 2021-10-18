@@ -10,6 +10,7 @@ logging.getLogger("main")
 class Scrapper:
     def __init__(self, _ticker):
         self.ticker = _ticker
+        self.base_url = "https://query1.finance.yahoo.com/v7/finance/download"
         self.file_path = rf".\data\tickers\{_ticker}.csv"
         self.last_tick = self.check_file()
         self.today = datetime.now()
@@ -45,9 +46,13 @@ class Scrapper:
             f"Atualizando dados do ticker {self.ticker} a partir de {self.last_tick}"
         )
 
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+
         response = requests.get(
-            rf"https://query1.finance.yahoo.com/v7/finance/download/{self.ticker}.SA?period1={self.start_date}"
-            + f"&period2={self.end_date}&interval=1d"
+            f"{self.base_url}/{self.ticker}.SA?period1={self.start_date}&period2={self.end_date}&interval=1d",
+            headers=headers,
         )
 
         if response.status_code == 200:

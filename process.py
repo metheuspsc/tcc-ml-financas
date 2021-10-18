@@ -28,14 +28,10 @@ def calc_rsi(df):
     ewma_down = down_df.abs().ewm(span=n).mean()
 
     rs = ewma_up / ewma_down
-    rsi = 100.0 - (100.0 / (1.0 + rs))
-
-    return rsi
+    return 100.0 - (100.0 / (1.0 + rs))
 
 
 def calc_k_r(df):
-    n = 14
-
     high_14 = df["high"].rolling(14).max()
     low_14 = df["low"].rolling(14).min()
 
@@ -54,8 +50,7 @@ def calc_macd(df):
 
 
 def calc_prc(df):
-    n = 9
-    return df["close"].pct_change(periods=n)
+    return df["close"].pct_change(periods=9)
 
 
 def calc_predictions(df):
