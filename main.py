@@ -1,10 +1,11 @@
+import logging
 from dataclasses import dataclass
 
-from scrapper import *
-import logging
 import pandas as pd
-from process import process
+
 from model import predict_rf
+from process import process
+from scrapper import *
 
 logging.basicConfig(
     format="%(asctime)s %(message)s",
@@ -36,6 +37,7 @@ if __name__ == "__main__":
             rf".\data\tickers\{ticker['code']}.csv",
             names=["date", "open", "high", "low", "close", "adj close", "volume"],
         )
+        ticker_df.dropna(inplace=True)
 
         if len(ticker_df) > 30:
             today = ticker_df.date.iat[-1]

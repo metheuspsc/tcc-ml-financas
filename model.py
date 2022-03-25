@@ -18,7 +18,6 @@ def model_params(df):
             "macd",
             "macd_ema",
             "price_rate_of_change",
-            "on_balance_volume",
         ]
     ]
     df.dropna(inplace=True)
@@ -31,7 +30,6 @@ def model_params(df):
             "macd",
             "macd_ema",
             "price_rate_of_change",
-            "on_balance_volume",
         ]
     ]
     y_cols = df["predictions"]

@@ -8,7 +8,6 @@ def process(df):
     df["k_percent"], df["r_percent"] = calc_k_r(df)
     df["macd"], df["macd_ema"] = calc_macd(df)
     df["price_rate_of_change"] = calc_prc(df)
-    df["on_balance_volume"] = calc_obv(df)
     df["predictions"] = calc_predictions(df)
 
 
